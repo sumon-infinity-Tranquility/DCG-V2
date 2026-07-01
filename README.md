@@ -17,7 +17,12 @@ Flutter/Dart mobile app for campus emergency reporting and response.
 ## Project structure
 
 ```text
-lib/                 Flutter app source
+lib/main.dart        App flow and feature screens
+lib/core/            Theme, validators, and shared foundations
+lib/data/            Demo emergency categories, contacts, and seed cases
+lib/models/          Typed app models and status extensions
+lib/services/        Auth/session services and exceptions
+lib/widgets/         Shared UI components, badges, tiles, and painters
 android/             Android Gradle project for APK/AAB builds
 ios/                 iOS Runner project for Xcode/App Store builds
 test/                Flutter widget tests

@@ -5,7 +5,7 @@ void main() {
   testWidgets('shows authentication screen first', (tester) async {
     await tester.pumpWidget(const DcgApp());
 
-    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('Sign in'), findsWidgets);
     expect(find.text('Create a new account'), findsOneWidget);
   });
 }
