@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -24,85 +25,85 @@ class DcgTheme {
   static const bg = Color(0xFFF5F5FA);
   static const surface = Color(0xFFFFFFFF);
   static const slate = Color(0xFF313A51);
-  static const muted = Color(0xFF737A8C);
-  static const line = Color(0xFFE3E6EE);
+  static const muted = Color(0xFF747B8F);
+  static const line = Color(0xFFE2E5EE);
   static const accent = Color(0xFFFF8852);
+  static const accentSoft = Color(0xFFFFF1EA);
   static const danger = Color(0xFFE34242);
-  static const green = Color(0xFF0F9F6E);
+  static const green = Color(0xFF16A274);
+  static const blue = Color(0xFF4D74FF);
 
   static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: accent,
-      brightness: Brightness.light,
-      surface: surface,
-    );
+    final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.light);
 
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: bg,
-      colorScheme: colorScheme.copyWith(
-        primary: accent,
-        secondary: slate,
-        error: danger,
-      ),
+      colorScheme: scheme.copyWith(primary: accent, secondary: slate, surface: surface, error: danger),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: slate),
-        headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: slate),
-        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: slate),
+        headlineLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: slate, height: 1.05),
+        headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: slate, height: 1.12),
+        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: slate),
         titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: slate),
-        bodyLarge: TextStyle(fontSize: 15, height: 1.45, color: slate),
-        bodyMedium: TextStyle(fontSize: 13, height: 1.45, color: muted),
+        bodyLarge: TextStyle(fontSize: 15, color: slate, height: 1.45),
+        bodyMedium: TextStyle(fontSize: 13, color: muted, height: 1.45),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: bg,
+        elevation: 0,
+        centerTitle: false,
+        foregroundColor: slate,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: line),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: line),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: line)),
+        enabledBorder:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: line)),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: accent, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: accent, width: 1.4),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(50),
           elevation: 0,
           backgroundColor: accent,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(50),
           foregroundColor: slate,
           side: const BorderSide(color: line),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w900),
         ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
 }
 
-enum CaseStatus { open, triage, resolved }
+enum CaseStatus { open, triage, responding, resolved }
 
 enum Priority { low, medium, high, critical }
 
 class EmergencyCategory {
-  const EmergencyCategory(this.name, this.icon, this.color);
+  const EmergencyCategory(this.name, this.icon, this.color, this.helpText);
 
   final String name;
   final IconData icon;
   final Color color;
+  final String helpText;
 }
 
 class DcgCase {
@@ -135,13 +136,29 @@ class DcgCase {
   String? updatedBy;
 }
 
+class ResponderContact {
+  const ResponderContact(this.name, this.role, this.phone, this.online);
+
+  final String name;
+  final String role;
+  final String phone;
+  final bool online;
+}
+
 const categories = [
-  EmergencyCategory('Medical', Icons.medical_services_rounded, Color(0xFFDCE991)),
-  EmergencyCategory('Violence', Icons.warning_amber_rounded, Color(0xFFF5A6DF)),
-  EmergencyCategory('Rescue', Icons.volunteer_activism_rounded, Color(0xFFF5E8A6)),
-  EmergencyCategory('Fire', Icons.local_fire_department_rounded, Color(0xFFF5A6A6)),
-  EmergencyCategory('Natural disaster', Icons.storm_rounded, Color(0xFFA6F5D4)),
-  EmergencyCategory('Accident', Icons.car_crash_rounded, Color(0xFFD4CEF9)),
+  EmergencyCategory('Medical', Icons.medical_services_rounded, Color(0xFFDCE991), 'Health, injury, ambulance'),
+  EmergencyCategory('Violence', Icons.security_rounded, Color(0xFFF5A6DF), 'Threat, harassment, crowd risk'),
+  EmergencyCategory('Rescue', Icons.volunteer_activism_rounded, Color(0xFFF5E8A6), 'Stuck, trapped, urgent help'),
+  EmergencyCategory('Fire', Icons.local_fire_department_rounded, Color(0xFFF5A6A6), 'Smoke, fire, electrical hazard'),
+  EmergencyCategory('Disaster', Icons.storm_rounded, Color(0xFFA6F5D4), 'Storm, earthquake, flood'),
+  EmergencyCategory('Accident', Icons.car_crash_rounded, Color(0xFFD4CEF9), 'Transport or campus accident'),
+];
+
+const contacts = [
+  ResponderContact('Proctor Office', 'Campus response lead', '+8801713493050', true),
+  ResponderContact('Medical Center', 'First aid and ambulance', '+8801847334655', true),
+  ResponderContact('Security Control', 'Gate and patrol unit', '+8801912400700', true),
+  ResponderContact('Transport Desk', 'Campus route support', '+8801811110001', false),
 ];
 
 final seedCases = <DcgCase>[
@@ -153,7 +170,7 @@ final seedCases = <DcgCase>[
     category: 'Violence',
     location: 'Main Campus Gate',
     priority: Priority.high,
-    status: CaseStatus.triage,
+    status: CaseStatus.responding,
     details: 'Crowd pressure reported near the gate. Safety team is monitoring.',
     createdAt: DateTime.now().subtract(const Duration(minutes: 8)),
   ),
@@ -196,20 +213,23 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (signedIn) {
-      return DcgHome(
-        responderName: responderName,
-        onSignOut: () => setState(() => signedIn = false),
-      );
-    }
-
-    return AuthScreen(
-      onSignedIn: (name) {
-        setState(() {
-          responderName = name.trim().isEmpty ? 'Campus Responder' : name.trim();
-          signedIn = true;
-        });
-      },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      child: signedIn
+          ? DcgHome(
+              key: const ValueKey('home'),
+              responderName: responderName,
+              onSignOut: () => setState(() => signedIn = false),
+            )
+          : AuthScreen(
+              key: const ValueKey('auth'),
+              onSignedIn: (name) {
+                setState(() {
+                  responderName = name.trim().isEmpty ? 'Campus Responder' : name.trim();
+                  signedIn = true;
+                });
+              },
+            ),
     );
   }
 }
@@ -229,6 +249,8 @@ class _AuthScreenState extends State<AuthScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool createAccount = false;
+  bool showPassword = false;
+  int roleIndex = 0;
 
   @override
   void dispose() {
@@ -240,92 +262,122 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final roles = ['Responder', 'Student', 'Staff'];
+
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
+          children: [
+            const BrandLockup(),
+            const SizedBox(height: 24),
+            AppCard(
+              color: DcgTheme.slate,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _BrandHeader(),
-                  const SizedBox(height: 28),
-                  Text(
-                    createAccount ? 'Create responder account' : 'Welcome back',
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in to manage SOS alerts, campus cases, and emergency contacts.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  AppCard(
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: nameController,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(labelText: 'Responder name'),
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(labelText: 'Email'),
-                            validator: (value) {
-                              if (value == null || !value.contains('@')) {
-                                return 'Enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: passwordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(labelText: 'Password'),
-                            validator: (value) {
-                              if (value == null || value.length < 6) {
-                                return 'Use at least 6 characters';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 18),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (formKey.currentState?.validate() ?? false) {
-                                widget.onSignedIn(nameController.text);
-                              }
-                            },
-                            child: Text(createAccount ? 'Create account' : 'Sign in'),
-                          ),
-                          const SizedBox(height: 10),
-                          OutlinedButton.icon(
-                            onPressed: () => widget.onSignedIn(nameController.text),
-                            icon: const Icon(Icons.g_mobiledata_rounded),
-                            label: const Text('Continue with Google'),
-                          ),
-                          TextButton(
-                            onPressed: () => setState(() => createAccount = !createAccount),
-                            child: Text(createAccount ? 'Already have an account?' : 'Create new account'),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(color: DcgTheme.accent, borderRadius: BorderRadius.circular(16)),
+                    child: const Icon(Icons.sos_rounded, color: Colors.white),
                   ),
                   const SizedBox(height: 18),
-                  const AuthNote(),
+                  const Text(
+                    'Fast campus emergency response',
+                    style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900, height: 1.05),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Sign in, trigger SOS, submit reports, and coordinate responders from one mobile app.',
+                    style: TextStyle(color: Color(0xFFDDE2EF), height: 1.45),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: const [
+                      MiniStat(label: 'Teams', value: '6'),
+                      SizedBox(width: 10),
+                      MiniStat(label: 'Avg', value: '4m'),
+                      SizedBox(width: 10),
+                      MiniStat(label: 'Live', value: '24/7'),
+                    ],
+                  ),
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: 18),
+            AppCard(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 240),
+                      child: Text(
+                        createAccount ? 'Create account' : 'Sign in',
+                        key: ValueKey(createAccount),
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SegmentedButton<int>(
+                      segments: [
+                        for (var i = 0; i < roles.length; i++) ButtonSegment(value: i, label: Text(roles[i])),
+                      ],
+                      selected: {roleIndex},
+                      onSelectionChanged: (value) => setState(() => roleIndex = value.first),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Name'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_rounded)),
+                      validator: (value) => value != null && value.contains('@') ? null : 'Enter a valid email',
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: !showPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_rounded),
+                        suffixIcon: IconButton(
+                          onPressed: () => setState(() => showPassword = !showPassword),
+                          icon: Icon(showPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+                        ),
+                      ),
+                      validator: (value) => value != null && value.length >= 6 ? null : 'Use at least 6 characters',
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState?.validate() ?? false) widget.onSignedIn(nameController.text);
+                      },
+                      child: Text(createAccount ? 'Create and continue' : 'Sign in'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () => widget.onSignedIn(nameController.text),
+                      icon: const Icon(Icons.g_mobiledata_rounded),
+                      label: const Text('Continue with Google'),
+                    ),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => setState(() => createAccount = !createAccount),
+                        child: Text(createAccount ? 'Already have an account?' : 'Create a new account'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -333,11 +385,7 @@ class _AuthScreenState extends State<AuthScreen> {
 }
 
 class DcgHome extends StatefulWidget {
-  const DcgHome({
-    required this.responderName,
-    required this.onSignOut,
-    super.key,
-  });
+  const DcgHome({required this.responderName, required this.onSignOut, super.key});
 
   final String responderName;
   final VoidCallback onSignOut;
@@ -349,6 +397,13 @@ class DcgHome extends StatefulWidget {
 class _DcgHomeState extends State<DcgHome> {
   int tabIndex = 0;
   final cases = List<DcgCase>.from(seedCases);
+  final pageController = PageController();
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
 
   void addCase(DcgCase dcgCase) {
     setState(() => cases.insert(0, dcgCase));
@@ -360,6 +415,16 @@ class _DcgHomeState extends State<DcgHome> {
       dcgCase.updatedAt = DateTime.now();
       dcgCase.updatedBy = widget.responderName;
     });
+    showSnack('${dcgCase.location} moved to ${status.label}');
+  }
+
+  void showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void selectTab(int index) {
+    setState(() => tabIndex = index);
+    pageController.animateToPage(index, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
   }
 
   @override
@@ -368,27 +433,27 @@ class _DcgHomeState extends State<DcgHome> {
       DashboardPage(
         responderName: widget.responderName,
         cases: cases,
-        onOpenSos: () => setState(() => tabIndex = 1),
-        onSelectCategory: (category) => showReportSheet(context, category.name),
+        onOpenSos: () => selectTab(1),
+        onSelectCategory: (category) => showReportSheet(category.name),
       ),
       SosPage(
         responderName: widget.responderName,
-        onCreateCase: addCase,
+        onCreateCase: (dcgCase) {
+          addCase(dcgCase);
+          showSnack('Critical SOS case created');
+        },
       ),
-      CasesPage(
-        cases: cases,
-        onStatusChange: updateStatus,
-        onAddReport: () => showReportSheet(context, categories.first.name),
+      ReportHubPage(
+        onStartReport: (category) => showReportSheet(category),
       ),
+      CasesPage(cases: cases, onStatusChange: updateStatus),
       ContactsPage(),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: DcgTheme.bg,
-        elevation: 0,
         titleSpacing: 20,
-        title: const _BrandHeader(compact: true),
+        title: const BrandLockup(compact: true),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -398,20 +463,18 @@ class _DcgHomeState extends State<DcgHome> {
           const SizedBox(width: 8),
         ],
       ),
-      body: pages[tabIndex],
-      floatingActionButton: tabIndex == 2
-          ? FloatingActionButton.extended(
-              onPressed: () => showReportSheet(context, categories.first.name),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Report'),
-            )
-          : null,
+      body: PageView(
+        controller: pageController,
+        onPageChanged: (index) => setState(() => tabIndex = index),
+        children: pages,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tabIndex,
-        onDestinationSelected: (index) => setState(() => tabIndex = index),
+        onDestinationSelected: selectTab,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.sos_rounded), label: 'SOS'),
+          NavigationDestination(icon: Icon(Icons.edit_note_rounded), label: 'Report'),
           NavigationDestination(icon: Icon(Icons.view_kanban_rounded), label: 'Cases'),
           NavigationDestination(icon: Icon(Icons.call_rounded), label: 'Contacts'),
         ],
@@ -419,7 +482,7 @@ class _DcgHomeState extends State<DcgHome> {
     );
   }
 
-  Future<void> showReportSheet(BuildContext context, String category) {
+  Future<void> showReportSheet(String category) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -427,7 +490,10 @@ class _DcgHomeState extends State<DcgHome> {
       builder: (context) => ReportSheet(
         initialCategory: category,
         responderName: widget.responderName,
-        onSubmit: addCase,
+        onSubmit: (dcgCase) {
+          addCase(dcgCase);
+          showSnack('Report submitted');
+        },
       ),
     );
   }
@@ -451,80 +517,114 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final open = cases.where((item) => item.status != CaseStatus.resolved).length;
     final critical = cases.where((item) => item.priority == Priority.critical).length;
-    final resolved = cases.where((item) => item.status == CaseStatus.resolved).length;
+    final responding = cases.where((item) => item.status == CaseStatus.responding).length;
+    final latest = cases.take(3).toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [
-        Text('Hi, $responderName', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 6),
-        Text('Stay ready. DCG is monitoring campus response signals.', style: Theme.of(context).textTheme.bodyMedium),
-        const SizedBox(height: 18),
         Row(
           children: [
-            Expanded(child: MetricCard(label: 'Open', value: '$open')),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'Critical', value: '$critical', accent: true)),
-            const SizedBox(width: 12),
-            Expanded(child: MetricCard(label: 'Done', value: '$resolved')),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hi, $responderName', style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 5),
+                  Text('Swipe between sections. Tap a category to report faster.',
+                      style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+            LiveBadge(text: '$responding live'),
           ],
         ),
         const SizedBox(height: 18),
         AppCard(
-          color: DcgTheme.slate,
+          padding: EdgeInsets.zero,
+          clip: true,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Are you in an emergency?',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [DcgTheme.slate, Color(0xFF45516E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Need urgent help?',
+                            style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        IconButton.filled(
+                          onPressed: onOpenSos,
+                          style: IconButton.styleFrom(backgroundColor: DcgTheme.accent),
+                          icon: const Icon(Icons.sos_rounded),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Open SOS, choose the emergency type, then hold to alert responders.',
+                      style: TextStyle(color: Color(0xFFDDE2EF), height: 1.4),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Press SOS to share your live campus location with the nearest help centre.',
-                style: TextStyle(color: Color(0xFFDDE1EB), height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: onOpenSos,
-                icon: const Icon(Icons.sos_rounded),
-                label: const Text('Open SOS'),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Expanded(child: MetricPill(label: 'Open', value: '$open')),
+                    const SizedBox(width: 10),
+                    Expanded(child: MetricPill(label: 'Critical', value: '$critical', danger: true)),
+                    const SizedBox(width: 10),
+                    const Expanded(child: MetricPill(label: 'Avg', value: '4m')),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 22),
-        Text('What is your emergency?', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        GridView.builder(
-          itemCount: categories.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.3,
-          ),
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return CategoryTile(
-              category: category,
-              onTap: () => onSelectCategory(category),
-            );
-          },
+        SectionTitle(
+          title: 'What is your emergency?',
+          action: 'Tap to report',
+          onAction: () => onSelectCategory(categories.first),
         ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 128,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) => SizedBox(
+              width: 142,
+              child: CategoryTile(category: categories[index], onTap: () => onSelectCategory(categories[index])),
+            ),
+          ),
+        ),
+        const SizedBox(height: 22),
+        SectionTitle(title: 'Latest activity', action: 'View cases', onAction: () {}),
+        const SizedBox(height: 12),
+        for (final item in latest) CompactCaseTile(dcgCase: item),
       ],
     );
   }
 }
 
 class SosPage extends StatefulWidget {
-  const SosPage({
-    required this.responderName,
-    required this.onCreateCase,
-    super.key,
-  });
+  const SosPage({required this.responderName, required this.onCreateCase, super.key});
 
   final String responderName;
   final ValueChanged<DcgCase> onCreateCase;
@@ -533,159 +633,177 @@ class SosPage extends StatefulWidget {
   State<SosPage> createState() => _SosPageState();
 }
 
-class _SosPageState extends State<SosPage> {
-  Timer? timer;
-  int seconds = 3;
+class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
+  late final AnimationController pulseController;
+  Timer? holdTimer;
+  double holdProgress = 0;
   bool calling = false;
   String selectedCategory = categories.first.name;
+  final timeline = <String>[
+    'Ready to share campus location',
+    'Emergency contacts standing by',
+    'Nearest help centre available',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+  }
 
   @override
   void dispose() {
-    timer?.cancel();
+    holdTimer?.cancel();
+    pulseController.dispose();
     super.dispose();
   }
 
   void startHold() {
-    if (timer != null) return;
+    if (holdTimer != null) return;
     setState(() {
-      seconds = 3;
       calling = true;
+      holdProgress = 0;
     });
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (seconds <= 1) {
-        finishHold();
-      } else {
-        setState(() => seconds--);
-      }
+    holdTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
+      setState(() => holdProgress = (holdProgress + 0.02).clamp(0, 1));
+      if (holdProgress >= 1) finishHold();
     });
   }
 
   void cancelHold() {
-    timer?.cancel();
-    timer = null;
-    if (mounted && calling) {
-      setState(() {
-        calling = false;
-        seconds = 3;
-      });
-    }
+    if (holdProgress >= 1) return;
+    holdTimer?.cancel();
+    holdTimer = null;
+    setState(() {
+      calling = false;
+      holdProgress = 0;
+    });
   }
 
   void finishHold() {
-    timer?.cancel();
-    timer = null;
+    holdTimer?.cancel();
+    holdTimer = null;
     final dcgCase = DcgCase(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: widget.responderName,
       contact: '+8801713493050',
       role: 'Responder',
       category: selectedCategory,
-      location: 'Current campus location',
+      location: 'Live campus location',
       priority: Priority.critical,
       status: CaseStatus.open,
-      details: 'SOS triggered. Live campus location shared with nearest help centre and emergency contacts.',
+      details: 'SOS triggered. Live location shared with nearest help centre and emergency contacts.',
       createdAt: DateTime.now(),
     );
     widget.onCreateCase(dcgCase);
-    setState(() => calling = false);
-    showDialog<void>(
+    setState(() {
+      calling = false;
+      holdProgress = 0;
+      timeline.insert(0, 'Critical $selectedCategory case created now');
+      timeline.insert(1, 'Location sent to Proctor Office');
+    });
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Calling Emergency...'),
-        content: const Text(
-          'Please stand by. DCG has created a critical alert for campus responders and emergency contacts.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
+      showDragHandle: true,
+      builder: (context) => SosResultSheet(category: selectedCategory),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [
         Text('SOS Emergency', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text(
-          'Hold the SOS button for 3 seconds. Your emergency category and live location will be shared.',
-          style: Theme.of(context).textTheme.bodyMedium,
+        Text('Choose the emergency type, then hold the SOS button until the ring completes.',
+            style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 18),
+        SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              final selected = selectedCategory == category.name;
+              return ChoiceChip(
+                selected: selected,
+                avatar: Icon(category.icon, size: 18),
+                label: Text(category.name),
+                onSelected: (_) => setState(() => selectedCategory = category.name),
+              );
+            },
+          ),
         ),
-        const SizedBox(height: 20),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: categories.map((category) {
-            final selected = category.name == selectedCategory;
-            return ChoiceChip(
-              selected: selected,
-              label: Text(category.name),
-              avatar: Icon(category.icon, size: 18),
-              onSelected: (_) => setState(() => selectedCategory = category.name),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 34),
+        const SizedBox(height: 28),
         Center(
           child: GestureDetector(
-            onLongPressStart: (_) => startHold(),
-            onLongPressEnd: (_) => cancelHold(),
             onTapDown: (_) => startHold(),
-            onTapUp: (_) => cancelHold(),
             onTapCancel: cancelHold,
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 160),
-              scale: calling ? 0.96 : 1,
-              child: Container(
-                width: 230,
-                height: 230,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: DcgTheme.accent,
-                  border: Border.all(color: Colors.white, width: 16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: DcgTheme.accent.withOpacity(0.34),
-                      blurRadius: 42,
-                      offset: const Offset(0, 20),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      calling ? '$seconds' : 'SOS',
-                      style: const TextStyle(color: Colors.white, fontSize: 54, fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      calling ? 'Keep holding' : 'Hold 3 seconds',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-                    ),
-                  ],
+            onTapUp: (_) => cancelHold(),
+            child: AnimatedBuilder(
+              animation: pulseController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: SosPulsePainter(
+                    pulse: pulseController.value,
+                    progress: holdProgress,
+                    calling: calling,
+                  ),
+                  child: child,
+                );
+              },
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 160),
+                scale: calling ? 0.96 : 1,
+                child: Container(
+                  width: 238,
+                  height: 238,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: DcgTheme.accent),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        calling ? '${(holdProgress * 100).round()}%' : 'SOS',
+                        style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        calling ? 'Keep holding' : 'Press and hold',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 30),
         AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Live response timeline', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              for (var i = 0; i < math.min(timeline.length, 5); i++)
+                TimelineRow(text: timeline[i], active: i == 0),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        AppCard(
+          color: DcgTheme.accentSoft,
           child: Row(
             children: [
-              const CircleAvatar(
-                backgroundColor: Color(0xFFEFF2F7),
-                child: Icon(Icons.location_on_rounded, color: DcgTheme.slate),
-              ),
+              const Icon(Icons.location_on_rounded, color: DcgTheme.accent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Standby mode: nearest help centre and emergency contacts receive your alert.',
+                  'Demo map: live campus location, nearest help centre, and emergency contacts are simulated here.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
@@ -697,17 +815,57 @@ class _SosPageState extends State<SosPage> {
   }
 }
 
+class ReportHubPage extends StatelessWidget {
+  const ReportHubPage({required this.onStartReport, super.key});
+
+  final ValueChanged<String> onStartReport;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+      children: [
+        Text('Quick report', style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: 8),
+        Text('Pick a category to open a focused report form.', style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 18),
+        for (final category in categories)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () => onStartReport(category.name),
+              child: AppCard(
+                child: Row(
+                  children: [
+                    CategoryIcon(category: category, size: 52),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(category.name, style: Theme.of(context).textTheme.titleLarge),
+                          const SizedBox(height: 4),
+                          Text(category.helpText, style: Theme.of(context).textTheme.bodyMedium),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class CasesPage extends StatefulWidget {
-  const CasesPage({
-    required this.cases,
-    required this.onStatusChange,
-    required this.onAddReport,
-    super.key,
-  });
+  const CasesPage({required this.cases, required this.onStatusChange, super.key});
 
   final List<DcgCase> cases;
   final void Function(DcgCase dcgCase, CaseStatus status) onStatusChange;
-  final VoidCallback onAddReport;
 
   @override
   State<CasesPage> createState() => _CasesPageState();
@@ -727,17 +885,9 @@ class _CasesPageState extends State<CasesPage> {
     }).toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [
-        Row(
-          children: [
-            Expanded(child: Text('Cases', style: Theme.of(context).textTheme.headlineMedium)),
-            IconButton.filled(
-              onPressed: widget.onAddReport,
-              icon: const Icon(Icons.add_rounded),
-            ),
-          ],
-        ),
+        Text('Cases', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 12),
         TextField(
           onChanged: (value) => setState(() => query = value),
@@ -784,51 +934,54 @@ class _CasesPageState extends State<CasesPage> {
 }
 
 class ContactsPage extends StatelessWidget {
-  ContactsPage({super.key});
-
-  final contacts = const [
-    ('Proctor Office', 'Campus discipline and response', '+8801713493050'),
-    ('Medical Center', 'First aid and ambulance support', '+8801847334655'),
-    ('Security Control', 'Gate, building, and night patrol', '+8801912400700'),
-    ('Transport Desk', 'Campus transport and route help', '+8801811110001'),
-  ];
+  const ContactsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [
         Text('Emergency contacts', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text('Quick access to verified campus response channels.', style: Theme.of(context).textTheme.bodyMedium),
+        Text('Tap a card action for immediate feedback. Phone integration can be enabled with url_launcher later.',
+            style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 18),
         for (final contact in contacts)
           AppCard(
             margin: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
-                const CircleAvatar(
-                  backgroundColor: Color(0xFFEFF2F7),
-                  child: Icon(Icons.call_rounded, color: DcgTheme.slate),
+                CircleAvatar(
+                  backgroundColor: contact.online ? const Color(0xFFE7F8F1) : const Color(0xFFEFF2F7),
+                  child: Icon(Icons.call_rounded, color: contact.online ? DcgTheme.green : DcgTheme.muted),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(contact.$1, style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 3),
-                      Text(contact.$2, style: Theme.of(context).textTheme.bodyMedium),
-                      const SizedBox(height: 3),
-                      Text(contact.$3, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      Row(
+                        children: [
+                          Expanded(child: Text(contact.name, style: Theme.of(context).textTheme.titleMedium)),
+                          LiveBadge(text: contact.online ? 'online' : 'standby', muted: !contact.online),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(contact.role, style: Theme.of(context).textTheme.bodyMedium),
+                      const SizedBox(height: 4),
+                      Text(contact.phone, style: const TextStyle(fontWeight: FontWeight.w900)),
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${contact.$3} copied')),
+                PopupMenuButton<String>(
+                  onSelected: (value) => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$value ${contact.phone}')),
                   ),
-                  icon: const Icon(Icons.copy_rounded),
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'Calling', child: Text('Call')),
+                    PopupMenuItem(value: 'Copied', child: Text('Copy number')),
+                    PopupMenuItem(value: 'Shared', child: Text('Share case')),
+                  ],
                 ),
               ],
             ),
@@ -881,104 +1034,103 @@ class _ReportSheetState extends State<ReportSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        child: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Submit campus report', style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Reporter name'),
-                  validator: requiredValidator,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: contactController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Contact number'),
-                  validator: requiredValidator,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: locationController,
-                  decoration: const InputDecoration(labelText: 'Location'),
-                  validator: requiredValidator,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: role,
-                  decoration: const InputDecoration(labelText: 'Role'),
-                  items: ['Student', 'Teacher', 'Staff', 'Alumni', 'Visitor']
-                      .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                      .toList(),
-                  onChanged: (value) => setState(() => role = value ?? role),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: category,
-                  decoration: const InputDecoration(labelText: 'Category'),
-                  items: categories
-                      .map((item) => DropdownMenuItem(value: item.name, child: Text(item.name)))
-                      .toList(),
-                  onChanged: (value) => setState(() => category = value ?? category),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<Priority>(
-                  value: priority,
-                  decoration: const InputDecoration(labelText: 'Priority'),
-                  items: Priority.values
-                      .map((item) => DropdownMenuItem(value: item, child: Text(item.label)))
-                      .toList(),
-                  onChanged: (value) => setState(() => priority = value ?? priority),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: detailsController,
-                  maxLines: 4,
-                  decoration: const InputDecoration(labelText: 'Details'),
-                  validator: requiredValidator,
-                ),
-                const SizedBox(height: 18),
-                ElevatedButton(
-                  onPressed: () {
-                    if (!(formKey.currentState?.validate() ?? false)) return;
-                    widget.onSubmit(
-                      DcgCase(
-                        id: DateTime.now().microsecondsSinceEpoch.toString(),
-                        name: nameController.text,
-                        contact: contactController.text,
-                        role: role,
-                        category: category,
-                        location: locationController.text,
-                        priority: priority,
-                        status: CaseStatus.open,
-                        details: detailsController.text,
-                        createdAt: DateTime.now(),
-                      ),
-                    );
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Report submitted')),
-                    );
-                  },
-                  child: const Text('Submit report'),
-                ),
-              ],
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.96,
+      builder: (context, scrollController) {
+        return ListView(
+          controller: scrollController,
+          padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+          children: [
+            Text('Submit campus report', style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: 6),
+            Text('This report becomes a live case for responders.', style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Reporter name', prefixIcon: Icon(Icons.person_rounded)),
+                    validator: requiredValidator,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: contactController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(labelText: 'Contact number', prefixIcon: Icon(Icons.call_rounded)),
+                    validator: requiredValidator,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: locationController,
+                    decoration: const InputDecoration(labelText: 'Location', prefixIcon: Icon(Icons.place_rounded)),
+                    validator: requiredValidator,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: role,
+                    decoration: const InputDecoration(labelText: 'Role'),
+                    items: ['Student', 'Teacher', 'Staff', 'Alumni', 'Visitor']
+                        .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+                        .toList(),
+                    onChanged: (value) => setState(() => role = value ?? role),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    items: categories
+                        .map((item) => DropdownMenuItem(value: item.name, child: Text(item.name)))
+                        .toList(),
+                    onChanged: (value) => setState(() => category = value ?? category),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<Priority>(
+                    segments: Priority.values
+                        .map((item) => ButtonSegment(value: item, label: Text(item.label)))
+                        .toList(),
+                    selected: {priority},
+                    onSelectionChanged: (value) => setState(() => priority = value.first),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: detailsController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(labelText: 'Details'),
+                    validator: requiredValidator,
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (!(formKey.currentState?.validate() ?? false)) return;
+                      widget.onSubmit(
+                        DcgCase(
+                          id: DateTime.now().microsecondsSinceEpoch.toString(),
+                          name: nameController.text,
+                          contact: contactController.text,
+                          role: role,
+                          category: category,
+                          location: locationController.text,
+                          priority: priority,
+                          status: CaseStatus.open,
+                          details: detailsController.text,
+                          createdAt: DateTime.now(),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Submit report'),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 }
@@ -993,28 +1145,29 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.margin,
     this.color,
+    this.padding = const EdgeInsets.all(16),
+    this.clip = false,
     super.key,
   });
 
   final Widget child;
   final EdgeInsetsGeometry? margin;
   final Color? color;
+  final EdgeInsetsGeometry padding;
+  final bool clip;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: margin,
-      padding: const EdgeInsets.all(16),
+      clipBehavior: clip ? Clip.antiAlias : Clip.none,
+      padding: padding,
       decoration: BoxDecoration(
         color: color ?? DcgTheme.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color == null ? DcgTheme.line : Colors.transparent),
         boxShadow: [
-          BoxShadow(
-            color: DcgTheme.slate.withOpacity(0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
+          BoxShadow(color: DcgTheme.slate.withOpacity(0.07), blurRadius: 26, offset: const Offset(0, 14)),
         ],
       ),
       child: child,
@@ -1022,35 +1175,24 @@ class AppCard extends StatelessWidget {
   }
 }
 
-class MetricCard extends StatelessWidget {
-  const MetricCard({
-    required this.label,
-    required this.value,
-    this.accent = false,
-    super.key,
-  });
+class MetricPill extends StatelessWidget {
+  const MetricPill({required this.label, required this.value, this.danger = false, super.key});
 
   final String label;
   final String value;
-  final bool accent;
+  final bool danger;
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      color: accent ? const Color(0xFFFFF1EA) : null,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: danger ? DcgTheme.accentSoft : DcgTheme.bg, borderRadius: BorderRadius.circular(14)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              color: accent ? DcgTheme.accent : DcgTheme.slate,
-              fontSize: 30,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
+          const SizedBox(height: 4),
+          Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: danger ? DcgTheme.accent : DcgTheme.slate)),
         ],
       ),
     );
@@ -1058,11 +1200,7 @@ class MetricCard extends StatelessWidget {
 }
 
 class CategoryTile extends StatelessWidget {
-  const CategoryTile({
-    required this.category,
-    required this.onTap,
-    super.key,
-  });
+  const CategoryTile({required this.category, required this.onTap, super.key});
 
   final EmergencyCategory category;
   final VoidCallback onTap;
@@ -1070,23 +1208,17 @@ class CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: AppCard(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: category.color,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(category.icon, color: DcgTheme.slate),
-            ),
-            const SizedBox(height: 10),
-            Text(category.name, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+            CategoryIcon(category: category),
+            const Spacer(),
+            Text(category.name, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 3),
+            Text(category.helpText, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),
@@ -1094,12 +1226,25 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
+class CategoryIcon extends StatelessWidget {
+  const CategoryIcon({required this.category, this.size = 44, super.key});
+
+  final EmergencyCategory category;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: category.color, borderRadius: BorderRadius.circular(14)),
+      child: Icon(category.icon, color: DcgTheme.slate),
+    );
+  }
+}
+
 class CaseCard extends StatelessWidget {
-  const CaseCard({
-    required this.dcgCase,
-    required this.onStatusChange,
-    super.key,
-  });
+  const CaseCard({required this.dcgCase, required this.onStatusChange, super.key});
 
   final DcgCase dcgCase;
   final ValueChanged<CaseStatus> onStatusChange;
@@ -1108,45 +1253,68 @@ class CaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(dcgCase.location, style: Theme.of(context).textTheme.titleLarge)),
-              PriorityBadge(priority: dcgCase.priority),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(dcgCase.details, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          Wrap(
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: EdgeInsets.zero,
+        title: Text(dcgCase.location, style: Theme.of(context).textTheme.titleLarge),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               InfoChip(label: dcgCase.category),
-              InfoChip(label: dcgCase.role),
+              PriorityBadge(priority: dcgCase.priority),
               InfoChip(label: dcgCase.status.label),
             ],
+          ),
+        ),
+        children: [
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(dcgCase.details, style: Theme.of(context).textTheme.bodyMedium),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => onStatusChange(CaseStatus.triage),
-                  child: const Text('Triage'),
-                ),
-              ),
+              Expanded(child: OutlinedButton(onPressed: () => onStatusChange(CaseStatus.triage), child: const Text('Triage'))),
               const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => onStatusChange(CaseStatus.resolved),
-                  child: const Text('Resolve'),
-                ),
-              ),
+              Expanded(child: OutlinedButton(onPressed: () => onStatusChange(CaseStatus.responding), child: const Text('Respond'))),
+              const SizedBox(width: 10),
+              Expanded(child: ElevatedButton(onPressed: () => onStatusChange(CaseStatus.resolved), child: const Text('Done'))),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class CompactCaseTile extends StatelessWidget {
+  const CompactCaseTile({required this.dcgCase, super.key});
+
+  final DcgCase dcgCase;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          StatusDot(status: dcgCase.status),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(dcgCase.location, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text('${dcgCase.category} • ${dcgCase.status.label}', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          PriorityBadge(priority: dcgCase.priority),
         ],
       ),
     );
@@ -1160,20 +1328,13 @@ class PriorityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHot = priority == Priority.high || priority == Priority.critical;
+    final hot = priority == Priority.high || priority == Priority.critical;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isHot ? DcgTheme.danger : const Color(0xFFF4E4A7),
-        borderRadius: BorderRadius.circular(999),
-      ),
+      decoration: BoxDecoration(color: hot ? DcgTheme.danger : const Color(0xFFF4E4A7), borderRadius: BorderRadius.circular(999)),
       child: Text(
         priority.label,
-        style: TextStyle(
-          color: isHot ? Colors.white : DcgTheme.slate,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-        ),
+        style: TextStyle(color: hot ? Colors.white : DcgTheme.slate, fontSize: 12, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -1188,11 +1349,102 @@ class InfoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF2F7),
-        borderRadius: BorderRadius.circular(999),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFEFF2F7), borderRadius: BorderRadius.circular(999)),
       child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+    );
+  }
+}
+
+class LiveBadge extends StatelessWidget {
+  const LiveBadge({required this.text, this.muted = false, super.key});
+
+  final String text;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(color: muted ? const Color(0xFFEFF2F7) : const Color(0xFFE7F8F1), borderRadius: BorderRadius.circular(999)),
+      child: Text(
+        text,
+        style: TextStyle(color: muted ? DcgTheme.muted : DcgTheme.green, fontSize: 12, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
+}
+
+class StatusDot extends StatelessWidget {
+  const StatusDot({required this.status, super.key});
+
+  final CaseStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(color: status.color, shape: BoxShape.circle),
+    );
+  }
+}
+
+class TimelineRow extends StatelessWidget {
+  const TimelineRow({required this.text, required this.active, super.key});
+
+  final String text;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(color: active ? DcgTheme.accent : const Color(0xFFEFF2F7), shape: BoxShape.circle),
+            child: Icon(active ? Icons.flash_on_rounded : Icons.check_rounded, size: 15, color: active ? Colors.white : DcgTheme.muted),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyLarge)),
+        ],
+      ),
+    );
+  }
+}
+
+class SosResultSheet extends StatelessWidget {
+  const SosResultSheet({required this.category, super.key});
+
+  final String category;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: const BoxDecoration(color: DcgTheme.accentSoft, shape: BoxShape.circle),
+            child: const Icon(Icons.sos_rounded, color: DcgTheme.accent),
+          ),
+          const SizedBox(height: 14),
+          Text('Emergency request sent', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 8),
+          Text(
+            '$category alert created. Please stand by while the nearest campus response team reviews your location.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 18),
+          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('I understand')),
+        ],
+      ),
     );
   }
 }
@@ -1204,38 +1456,54 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
+    return AppCard(child: Center(child: Padding(padding: const EdgeInsets.all(18), child: Text(message))));
+  }
+}
+
+class SectionTitle extends StatelessWidget {
+  const SectionTitle({required this.title, this.action, this.onAction, super.key});
+
+  final String title;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Text(title, style: Theme.of(context).textTheme.titleLarge)),
+        if (action != null) TextButton(onPressed: onAction, child: Text(action!)),
+      ],
+    );
+  }
+}
+
+class MiniStat extends StatelessWidget {
+  const MiniStat({required this.label, required this.value, super.key});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(14)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+            Text(label, style: const TextStyle(color: Color(0xFFDDE2EF), fontSize: 12)),
+          ],
         ),
       ),
     );
   }
 }
 
-class AuthNote extends StatelessWidget {
-  const AuthNote({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF1EA),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        'Firebase Auth can replace this demo sign-in without changing the app flow.',
-        style: Theme.of(context).textTheme.bodyMedium,
-      ),
-    );
-  }
-}
-
-class _BrandHeader extends StatelessWidget {
-  const _BrandHeader({this.compact = false});
+class BrandLockup extends StatelessWidget {
+  const BrandLockup({this.compact = false, super.key});
 
   final bool compact;
 
@@ -1248,16 +1516,12 @@ class _BrandHeader extends StatelessWidget {
           height: compact ? 38 : 48,
           decoration: BoxDecoration(
             color: DcgTheme.accent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: Text(
               'D',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: compact ? 18 : 24,
-                fontWeight: FontWeight.w900,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: compact ? 18 : 24, fontWeight: FontWeight.w900),
             ),
           ),
         ),
@@ -1274,6 +1538,49 @@ class _BrandHeader extends StatelessWidget {
   }
 }
 
+class SosPulsePainter extends CustomPainter {
+  SosPulsePainter({required this.pulse, required this.progress, required this.calling});
+
+  final double pulse;
+  final double progress;
+  final bool calling;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    final ripplePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = DcgTheme.accent.withOpacity(calling ? 0.22 : 0.12);
+
+    for (var i = 0; i < 3; i++) {
+      final r = radius + 10 + ((pulse + i / 3) % 1) * 36;
+      canvas.drawCircle(center, r, ripplePaint..color = DcgTheme.accent.withOpacity((1 - ((pulse + i / 3) % 1)) * 0.18));
+    }
+
+    if (calling) {
+      final progressPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 10
+        ..color = DcgTheme.slate;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius + 12),
+        -math.pi / 2,
+        math.pi * 2 * progress,
+        false,
+        progressPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant SosPulsePainter oldDelegate) {
+    return pulse != oldDelegate.pulse || progress != oldDelegate.progress || calling != oldDelegate.calling;
+  }
+}
+
 extension CaseStatusLabel on CaseStatus {
   String get label {
     switch (this) {
@@ -1281,8 +1588,23 @@ extension CaseStatusLabel on CaseStatus {
         return 'Open';
       case CaseStatus.triage:
         return 'Triage';
+      case CaseStatus.responding:
+        return 'Responding';
       case CaseStatus.resolved:
         return 'Resolved';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case CaseStatus.open:
+        return DcgTheme.blue;
+      case CaseStatus.triage:
+        return DcgTheme.accent;
+      case CaseStatus.responding:
+        return DcgTheme.green;
+      case CaseStatus.resolved:
+        return DcgTheme.muted;
     }
   }
 }
