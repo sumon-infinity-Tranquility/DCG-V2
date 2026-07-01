@@ -4,12 +4,13 @@ import '../../core/theme/dcg_theme.dart';
 import '../../core/validators.dart';
 import '../../models/dcg_user.dart';
 import '../../services/auth_exception.dart';
-import '../../services/demo_auth_store.dart';
+import '../../services/auth_repository.dart';
 import '../../widgets/shared_widgets.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({required this.onSignedIn, super.key});
+  const AuthScreen({required this.authRepository, required this.onSignedIn, super.key});
 
+  final AuthRepository authRepository;
   final ValueChanged<DcgUser> onSignedIn;
 
   @override
@@ -36,20 +37,20 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void submit() {
+  Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
     setState(() => busy = true);
     try {
       final user = createAccount
-          ? DemoAuthStore.signUp(
+          ? await widget.authRepository.signUp(
               name: nameController.text,
               email: emailController.text,
               password: passwordController.text,
               role: roles[roleIndex],
               phone: phoneController.text,
             )
-          : DemoAuthStore.signIn(
+          : await widget.authRepository.signIn(
               email: emailController.text,
               password: passwordController.text,
             );
@@ -71,6 +72,14 @@ class _AuthScreenState extends State<AuthScreen> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
           children: [
             const BrandLockup(),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: LiveBadge(
+                text: widget.authRepository.providerLabel,
+                muted: !widget.authRepository.isFirebaseBacked,
+              ),
+            ),
             const SizedBox(height: 24),
             AppCard(
               color: DcgTheme.slate,
@@ -177,17 +186,26 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 10),
                     OutlinedButton.icon(
-                      onPressed: () => widget.onSignedIn(
-                        DcgUser(
-                          name: nameController.text.trim().isEmpty ? 'Google Responder' : nameController.text.trim(),
-                          email: emailController.text.trim().isEmpty ? 'google@diu.edu.bd' : emailController.text.trim(),
-                          role: roles[roleIndex],
-                          phone: phoneController.text.trim().isEmpty ? '+8801700000000' : phoneController.text.trim(),
-                          department: 'Google Auth Demo',
-                        ),
-                      ),
-                      icon: const Icon(Icons.g_mobiledata_rounded),
-                      label: const Text('Continue with Google'),
+                      onPressed: busy || widget.authRepository.isFirebaseBacked
+                          ? null
+                          : () async {
+                              setState(() => busy = true);
+                              try {
+                                final user = await widget.authRepository.continueDemo(
+                                  name: nameController.text,
+                                  email: emailController.text,
+                                  role: roles[roleIndex],
+                                  phone: phoneController.text,
+                                );
+                                widget.onSignedIn(user);
+                              } on AuthException catch (error) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+                              } finally {
+                                if (mounted) setState(() => busy = false);
+                              }
+                            },
+                      icon: const Icon(Icons.offline_bolt_rounded),
+                      label: Text(widget.authRepository.isFirebaseBacked ? 'Firebase email auth enabled' : 'Continue demo session'),
                     ),
                     Center(
                       child: TextButton(

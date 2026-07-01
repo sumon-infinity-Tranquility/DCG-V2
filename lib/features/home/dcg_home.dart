@@ -4,7 +4,8 @@ import '../../data/emergency_data.dart';
 import '../../models/case_status.dart';
 import '../../models/dcg_case.dart';
 import '../../models/dcg_user.dart';
-import '../../services/demo_auth_store.dart';
+import '../../services/auth_exception.dart';
+import '../../services/auth_repository.dart';
 import '../../widgets/shared_widgets.dart';
 import '../cases/cases_page.dart';
 import '../contacts/contacts_page.dart';
@@ -15,10 +16,11 @@ import '../reports/report_sheet.dart';
 import '../sos/sos_page.dart';
 
 class DcgHome extends StatefulWidget {
-  const DcgHome({required this.initialUser, required this.onSignOut, super.key});
+  const DcgHome({required this.authRepository, required this.initialUser, required this.onSignOut, super.key});
 
+  final AuthRepository authRepository;
   final DcgUser initialUser;
-  final VoidCallback onSignOut;
+  final Future<void> Function() onSignOut;
 
   @override
   State<DcgHome> createState() => _DcgHomeState();
@@ -89,10 +91,14 @@ class _DcgHomeState extends State<DcgHome> {
       ProfilePage(
         user: user,
         cases: cases,
-        onSave: (updatedUser) {
-          setState(() => user = updatedUser);
-          DemoAuthStore.updateUser(updatedUser);
-          showSnack('Profile updated');
+        onSave: (updatedUser) async {
+          try {
+            await widget.authRepository.updateUser(updatedUser);
+            setState(() => user = updatedUser);
+            showSnack('Profile updated');
+          } on AuthException catch (error) {
+            showSnack(error.message);
+          }
         },
         onSignOut: widget.onSignOut,
       ),

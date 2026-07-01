@@ -18,8 +18,8 @@ class ProfilePage extends StatefulWidget {
 
   final DcgUser user;
   final List<DcgCase> cases;
-  final ValueChanged<DcgUser> onSave;
-  final VoidCallback onSignOut;
+  final Future<void> Function(DcgUser user) onSave;
+  final Future<void> Function() onSignOut;
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -32,6 +32,7 @@ class _ProfilePageState extends State<ProfilePage> {
   late final TextEditingController phoneController;
   late final TextEditingController departmentController;
   late String role;
+  bool saving = false;
 
   @override
   void initState() {
@@ -157,20 +158,32 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 18),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    if (!(formKey.currentState?.validate() ?? false)) return;
-                    widget.onSave(
-                      widget.user.copyWith(
-                        name: nameController.text.trim(),
-                        email: emailController.text.trim().toLowerCase(),
-                        role: role,
-                        phone: phoneController.text.trim(),
-                        department: departmentController.text.trim(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.save_rounded),
-                  label: const Text('Save profile'),
+                  onPressed: saving
+                      ? null
+                      : () async {
+                          if (!(formKey.currentState?.validate() ?? false)) return;
+                          setState(() => saving = true);
+                          try {
+                            await widget.onSave(
+                              widget.user.copyWith(
+                                name: nameController.text.trim(),
+                                email: emailController.text.trim().toLowerCase(),
+                                role: role,
+                                phone: phoneController.text.trim(),
+                                department: departmentController.text.trim(),
+                              ),
+                            );
+                          } finally {
+                            if (mounted) setState(() => saving = false);
+                          }
+                        },
+                  icon: saving
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.save_rounded),
+                  label: Text(saving ? 'Saving profile' : 'Save profile'),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(

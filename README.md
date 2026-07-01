@@ -11,18 +11,18 @@ Flutter/Dart mobile app for campus emergency reporting and response.
 - Incident report form.
 - Cases list with status updates.
 - Emergency contacts.
-- Firebase-ready architecture placeholder.
+- Firebase Auth / Firestore repository with local fallback for unconfigured development.
 - Native Android and iOS project folders.
 
 ## Project structure
 
 ```text
-lib/main.dart        App flow and feature screens
+lib/main.dart        App bootstrap and service initialization
 lib/core/            Theme, validators, and shared foundations
 lib/data/            Demo emergency categories, contacts, and seed cases
 lib/features/        Auth, dashboard, SOS, reports, cases, contacts, profile screens
 lib/models/          Typed app models and status extensions
-lib/services/        Auth/session services and exceptions
+lib/services/        Firebase/local auth repositories, session services, exceptions
 lib/widgets/         Shared UI components, badges, tiles, and painters
 android/             Android Gradle project for APK/AAB builds
 ios/                 iOS Runner project for Xcode/App Store builds
@@ -38,6 +38,8 @@ Install Flutter, then from this repo:
 flutter pub get
 flutter run
 ```
+
+The app starts with local fallback auth while Firebase placeholder keys are present. Replace `lib/firebase_options.dart`, `android/app/google-services.json`, and `ios/Runner/GoogleService-Info.plist` with real Firebase project values to enable Firebase Auth and Firestore-backed profiles.
 
 ## Android / Play Store
 

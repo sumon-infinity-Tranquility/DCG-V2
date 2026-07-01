@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'core/theme/dcg_theme.dart';
 import 'features/auth/auth_gate.dart';
+import 'services/app_services.dart';
+import 'services/auth_repository.dart';
 
-void main() {
-  runApp(const DcgApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final authRepository = await AppServices.createAuthRepository();
+  runApp(DcgApp(authRepository: authRepository));
 }
 
 class DcgApp extends StatelessWidget {
-  const DcgApp({super.key});
+  const DcgApp({required this.authRepository, super.key});
+
+  final AuthRepository authRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +22,7 @@ class DcgApp extends StatelessWidget {
       title: 'DCG',
       debugShowCheckedModeBanner: false,
       theme: DcgTheme.light,
-      home: const AuthGate(),
+      home: AuthGate(authRepository: authRepository),
     );
   }
 }
