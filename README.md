@@ -1,42 +1,39 @@
-# DCG Firebase App
+# DCG - Daffodil CrisisGuard
 
-Polished web UI for **DCG - Daffodil CrisisGuard** with Firebase Auth and Firestore hooks.
+Flutter/Dart mobile app for campus emergency reporting and response.
 
-## Firebase Setup
+## What is included
 
-1. Create a Firebase web app.
-2. Enable **Authentication > Google** and **Authentication > Anonymous**.
-3. Create a Firestore database.
-4. Replace the placeholder values in `firebase-config.js`.
-5. Deploy this folder to Netlify, Firebase Hosting, or any static host.
+- Minimal professional mobile UI inspired by the SOS Emergency Figma kit.
+- Login / sign-up interface.
+- Press-and-hold SOS flow.
+- Emergency categories.
+- Incident report form.
+- Cases list with status updates.
+- Emergency contacts.
+- Firebase-ready architecture placeholder.
 
-Reports are saved in the `reports` collection:
+## Run locally
 
-```js
-{
-  name,
-  role,
-  location,
-  priority,
-  details,
-  anonymous,
-  status,
-  createdAt,
-  createdBy
-}
+Install Flutter, then from this repo:
+
+```bash
+flutter pub get
+flutter run
 ```
 
-## Suggested Firestore Rules
+## Android / Play Store
 
-```txt
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /reports/{reportId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if false;
-    }
-  }
-}
+If Android platform files are missing on your machine, generate them once:
+
+```bash
+flutter create --platforms=android .
 ```
+
+Then build:
+
+```bash
+flutter build appbundle --release
+```
+
+Before publishing, update package name, app icon, signing config, privacy policy, Firebase config, and Play Store listing assets.
