@@ -20,6 +20,7 @@ Flutter/Dart mobile app for campus emergency reporting and response.
 lib/main.dart        App flow and feature screens
 lib/core/            Theme, validators, and shared foundations
 lib/data/            Demo emergency categories, contacts, and seed cases
+lib/features/        Auth, dashboard, SOS, reports, cases, contacts, profile screens
 lib/models/          Typed app models and status extensions
 lib/services/        Auth/session services and exceptions
 lib/widgets/         Shared UI components, badges, tiles, and painters
