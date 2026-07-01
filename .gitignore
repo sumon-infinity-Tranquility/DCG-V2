@@ -16,8 +16,10 @@ android/.gradle/
 android/app/build/
 android/local.properties
 android/key.properties
+android/app/google-services.json
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/ephemeral/
 ios/Flutter/Generated.xcconfig
 ios/Flutter/flutter_export_environment.sh
+ios/Runner/GoogleService-Info.plist
