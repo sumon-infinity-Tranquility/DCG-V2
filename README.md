@@ -24,16 +24,26 @@ flutter run
 
 ## Android / Play Store
 
-If Android platform files are missing on your machine, generate them once:
+Android platform files are included under `android/` with package id `com.dcg.crisisguard`.
 
-```bash
-flutter create --platforms=android .
-```
+Before publishing, add release signing in `android/key.properties`, replace the app icon, connect Firebase, update the privacy policy, and prepare Play Store listing assets.
 
-Then build:
+Build:
 
 ```bash
 flutter build appbundle --release
 ```
 
-Before publishing, update package name, app icon, signing config, privacy policy, Firebase config, and Play Store listing assets.
+## iOS / App Store
+
+iOS app source files are included under `ios/` with bundle id target `com.dcg.crisisguard`.
+
+On macOS, run:
+
+```bash
+flutter pub get
+cd ios
+pod install
+```
+
+Then open the iOS project in Xcode, select the Apple developer team, set the final bundle identifier, add Firebase `GoogleService-Info.plist` if needed, and archive for App Store Connect.

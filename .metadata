@@ -1,0 +1,26 @@
+# This file tracks properties of this Flutter project.
+version:
+  revision: "manual-platform-scaffold"
+  channel: "stable"
+
+project_type: app
+
+migration:
+  platforms:
+    - platform: root
+      create_revision: manual-platform-scaffold
+      base_revision: manual-platform-scaffold
+    - platform: android
+      create_revision: manual-platform-scaffold
+      base_revision: manual-platform-scaffold
+    - platform: ios
+      create_revision: manual-platform-scaffold
+      base_revision: manual-platform-scaffold
+
+unmanaged_files:
+  - app.js
+  - firebase-config.js
+  - index.html
+  - manifest.json
+  - styles.css
+  - sw.js
